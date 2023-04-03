@@ -1,38 +1,71 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { Fonts } from "src/constants";
+import React, { useCallback, useEffect, useState } from "react";
+import { Text, View } from "react-native";
+import Entypo from "@expo/vector-icons/Entypo";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  console.log({
-    Fonts: Fonts,
-  });
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await Font.loadAsync(Entypo.font);
+        // Artificially delay for two seconds to simulate a slow loading
+        // experience. Please remove this if you copy and paste the code!
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return (
+      <View
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "Roboto-Regular",
+            fontSize: 30,
+            alignSelf: "center",
+          }}
+        >
+          Splash Screen
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.textBold}>
-        Open up App.tsx to start working on your app!
-      </Text>
-      <Text style={styles.textItalic}>
-        Open up App.tsx to start working on your app!
-      </Text>
-      <StatusBar style="auto" />
+    <View
+      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+      onLayout={onLayoutRootView}
+    >
+      <Text>SplashScreen Demo! 👋</Text>
+      <Entypo name="rocket" size={30} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBold: {
-    ...Fonts.RobotoRegular,
-    fontWeight: "bold",
-  },
-  textItalic: {
-    ...Fonts.RobotoRegular,
-    fontStyle: "italic",
-  },
-});
